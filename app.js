@@ -7,13 +7,14 @@ class App {
     this._createLenis();
     this._render();
 
-    // Declaring Variables
-    this.state = null;
     this.imagesWrapper = document.querySelector(".intro__images");
+
     // this.images = [...this.imagesWrapper.querySelectorAll("img")];
     if (this.imagesWrapper) {
+      // Declaring Variables
+      this.state = null;
       this.introSection = document.querySelector(".intro");
-
+      this.navImages = document.querySelectorAll("#nav img");
       this.titleLines = 'h1 [data-animation="text-reveal"] > *';
       this.subTitleLine = 'h3 [data-animation="text-reveal"] > *';
       this.images = [...this.imagesWrapper.querySelectorAll("img")];
@@ -47,34 +48,9 @@ class App {
   // Start Lenis after the document is fully loaded
   _onDocumentLoaded() {
     this.lenis.start();
-
-    // this.lenis.render();
-
-    // this._createHomeIntro();
-    // this._createProjects();
   }
 
-  // // creating home intro
-  // _createHomeIntro() {
-  //   this.homeIntro = new HomeIntro();
-  // }
-
-  // // creating projects
-  // _createProjects() {
-  //   this.projects = new Projects();
-  // }
-
-  // // loading fonts
-  // _loadFonts() {
-  //   // WebFont.load({
-  //   //   custom: {
-  //   //     families: ["Coolvetica", "Switzer"],
-  //   //     urls: ["./app/styles/coolvetica.css", "./app/styles/switzer.css"],
-  //   //   },
-  //   // });
-  // }
-
-  // after creating lenis, animate scroll with lenis
+  // after creating lenis, animate scroll
   _render(time) {
     this.lenis.raf(time);
     requestAnimationFrame(this._render.bind(this));
@@ -84,6 +60,13 @@ class App {
   //  Home intro animation  //
   // - - - - - - - - - //
   _loadInitialState() {
+    // nav images are hidden
+    this.navImages.forEach((navImg) => {
+      gsap.set(navImg, {
+        y: 100,
+      });
+    });
+
     // The fullwidth image is also scaled bigger at first so that...
     gsap.set(".fullwidth-image img", {
       scale: 1.08,
@@ -155,8 +138,8 @@ class App {
     return gsap.to([this.images], {
       y: 0,
       opacity: 1,
-      duration: 3,
-      ease: "power3.inOut",
+      duration: 1.5,
+      ease: "expos.inout",
       stagger: 0.1,
       onComplete: () => this._animateImages(),
     });
@@ -165,7 +148,7 @@ class App {
   _animateImages() {
     // animating with Flip
     Flip.to(this.state, {
-      duration: 2,
+      duration: 1.5,
       ease: "expo.inOut",
       stagger: 0.15,
       onComplete: () => this._revealContent(),
@@ -173,25 +156,41 @@ class App {
   }
 
   _revealContent() {
-    const tl = gsap.timeline({
-      defaults: {
-        y: 0,
-        duration: 2,
-        ease: "expo.inOut",
-      },
-    });
+    if (this.imagesWrapper) {
+      const tl = gsap.timeline({
+        defaults: {
+          y: 0,
+          duration: 1.5,
+          ease: "expo.inOut",
+        },
+      });
 
-    tl.to(this.titleLines, {
-      stagger: 0.2,
-    }).to(
-      this.subTitleLine,
-      {
-        ease: "expo.inOut",
-      },
-      "<+0.4"
-    );
+      tl.to(this.titleLines, {
+        stagger: 0.2,
+      }).to(
+        this.subTitleLine,
+        {
+          ease: "expo.inOut",
+          onComplete: () => this._revealNav(),
+        },
+        "<+0.4"
+      );
 
-    return tl;
+      return tl;
+    }
+  }
+
+  _revealNav() {
+    if (this.imagesWrapper) {
+      this.navImages.forEach((navImg) => {
+        gsap.to(navImg, {
+          y: 0,
+          ease: "expos.inout",
+          duration: 1,
+          stagger: 0.8,
+        });
+      });
+    }
   }
 
   // Pinned section animation
@@ -284,45 +283,48 @@ class App {
 
       //   Project wrapper containers
       // const projectWrapperTags = document.querySelectorAll(".project__wrapper");
-      const projectWrapperTags =
-        this.projectSection.querySelectorAll(".project__wrapper");
+      if (this.project__wrapper) {
+        const projectWrapperTags =
+          this.projectSection.querySelectorAll(".project__wrapper");
 
-      // Looping the parent div and animating the childrens
-      projectWrapperTags.forEach((projectWrapper) => {
-        const dividerLine = projectWrapper.querySelector(".divider-line");
-        const footerLine = projectWrapper.querySelector(".footer-line");
-        const projectCta = projectWrapper.querySelector(".project__cta");
-        const projectHeader = projectWrapper.querySelector(
-          ".project__details h1"
-        );
-        const projectSubtitle = projectWrapper.querySelector("h3");
-        const projectDescription = projectWrapper.querySelector(
-          ".project-description"
-        );
+        // Looping the parent div and animating the childrens
+        projectWrapperTags.forEach((projectWrapper) => {
+          const dividerLine = projectWrapper.querySelector(".divider-line");
+          const footerLine = projectWrapper.querySelector(".footer-line");
+          const projectCta = projectWrapper.querySelector(".project__cta");
+          const projectHeader = projectWrapper.querySelector(
+            ".project__details h1"
+          );
+          const projectSubtitle = projectWrapper.querySelector("h3");
+          const projectDescription = projectWrapper.querySelector(
+            ".project-description"
+          );
 
-        const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: projectWrapper,
-            start: "-=250",
-            end: "",
-            duration: 0.3,
-          },
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: projectWrapper,
+              start: "-=250",
+              end: "",
+              duration: 0.3,
+            },
+          });
+
+          gsap.set(projectHeader, { y: 190 });
+          gsap.set(dividerLine, { scaleX: 0, transformOrigin: "left center" });
+          gsap.set(projectCta, { y: 70 });
+          gsap.set(footerLine, { scaleX: 0, transformOrigin: "left center" });
+          gsap.set(projectSubtitle, { opacity: 0 });
+          gsap.set(projectDescription, { opacity: 0 });
+
+          tl.to(projectHeader, { y: 0, ease: "back.out" })
+            .to(projectSubtitle, { opacity: 1 }, 0 + 0.1)
+            .to(projectDescription, { opacity: 1 }, 0 + 0.1)
+            .to(dividerLine, { scaleX: 1 }, 0 + 0.1)
+            .to(projectCta, { y: 0, ease: "back.out(2)" }, 0 + 0.1)
+            .to(footerLine, { scaleX: 1 }, 0 + 0.3);
         });
-
-        gsap.set(projectHeader, { y: 190 });
-        gsap.set(dividerLine, { scaleX: 0, transformOrigin: "left center" });
-        gsap.set(projectCta, { y: 70 });
-        gsap.set(footerLine, { scaleX: 0, transformOrigin: "left center" });
-        gsap.set(projectSubtitle, { opacity: 0 });
-        gsap.set(projectDescription, { opacity: 0 });
-
-        tl.to(projectHeader, { y: 0, ease: "back.out" })
-          .to(projectSubtitle, { opacity: 1 }, 0 + 0.1)
-          .to(projectDescription, { opacity: 1 }, 0 + 0.1)
-          .to(dividerLine, { scaleX: 1 }, 0 + 0.1)
-          .to(projectCta, { y: 0, ease: "back.out(2)" }, 0 + 0.1)
-          .to(footerLine, { scaleX: 1 }, 0 + 0.3);
-      });
+        // end of condition
+      }
     });
   }
 }
